@@ -1,0 +1,4 @@
+docker build --build-arg VITE_RANKING_API_URL=http://localhost:8087 -t football-ranking-web:1.0.0 .
+docker run --rm -p 3000:80 --name football-ranking-web football-ranking-web:1.0.0
+http://localhost:3000
+npm run dev
