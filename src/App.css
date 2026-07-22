@@ -320,4 +320,81 @@ tbody tr:hover {
     padding-left: 18px;
     padding-right: 18px;
   }
+
+  .hero__content {
+  display: flex;
+  gap: 28px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.main-nav {
+  display: inline-flex;
+  gap: 7px;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.main-nav button {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.78);
+  background: transparent;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.main-nav button.active {
+  color: #155844;
+  background: white;
+}
+
+.field select {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #cfd9d5;
+  border-radius: 10px;
+  color: #18202a;
+  background: white;
+  outline: none;
+}
+
+.field select:focus {
+  border-color: #176b55;
+  box-shadow: 0 0 0 3px rgba(23, 107, 85, 0.12);
+}
+
+.run-selector {
+  max-width: 760px;
+  padding: 24px 26px 28px;
+}
+
+.loading-banner {
+  margin: 20px 0;
+  padding: 16px 18px;
+  border: 1px solid #cbded7;
+  border-radius: 12px;
+  color: #155844;
+  background: #edf8f4;
+  font-weight: 700;
+}
+
+@media (max-width: 700px) {
+  .hero__content {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .main-nav {
+    width: 100%;
+  }
+
+  .main-nav button {
+    flex: 1;
+  }
+}
 }
