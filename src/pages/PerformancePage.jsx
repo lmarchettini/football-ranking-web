@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 
 import {
+  downloadPerformanceReport,
+} from "../utils/performanceReport";
+
+import {
   getLeaguePerformance,
   getMarketPerformance,
   getPerformanceRuns,
@@ -21,7 +25,7 @@ import RunSelector
 export default function PerformancePage() {
   const [runs, setRuns] = useState([]);
   const [selectedRunId, setSelectedRunId] =
-  useState("ALL");
+    useState("ALL");
 
   const [data, setData] = useState(null);
 
@@ -34,28 +38,28 @@ export default function PerformancePage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-  async function loadRuns() {
-    try {
-      setError("");
+    async function loadRuns() {
+      try {
+        setError("");
 
-      const result =
-        await getPerformanceRuns();
+        const result =
+          await getPerformanceRuns();
 
-      setRuns(result);
-    } catch (requestError) {
-      const message =
-        requestError.response?.data?.message ??
-        requestError.message ??
-        "Errore nel caricamento delle ranking run.";
+        setRuns(result);
+      } catch (requestError) {
+        const message =
+          requestError.response?.data?.message ??
+          requestError.message ??
+          "Errore nel caricamento delle ranking run.";
 
-      setError(message);
-    } finally {
-      setLoadingRuns(false);
+        setError(message);
+      } finally {
+        setLoadingRuns(false);
+      }
     }
-  }
 
-  loadRuns();
-}, []);
+    loadRuns();
+  }, []);
 
 
   useEffect(() => {
@@ -118,6 +122,23 @@ export default function PerformancePage() {
         loading={loadingRuns || loadingData}
       />
 
+      <div className="performance-actions">
+        <button
+          type="button"
+          className="button button--secondary"
+          onClick={() =>
+            downloadPerformanceReport({
+              data,
+              selectedRunId,
+              runs,
+            })
+          }
+          disabled={!data || loadingData}
+        >
+          Scarica report TXT
+        </button>
+      </div>
+
       {error && (
         <div className="error-banner">
           {error}
@@ -134,44 +155,44 @@ export default function PerformancePage() {
         <>
           <section className="metrics-grid">
             <PerformanceMetricCard
-                title="Top 3"
-                metric={data.top3}
-                description={
-                    selectedRunId === "ALL"
-                    ? "Prime 3 selezioni di ogni ranking settimanale"
-                    : "Le tre selezioni meglio classificate"
-                }
-                />
+              title="Top 3"
+              metric={data.top3}
+              description={
+                selectedRunId === "ALL"
+                  ? "Prime 3 selezioni di ogni ranking settimanale"
+                  : "Le tre selezioni meglio classificate"
+              }
+            />
 
-                <PerformanceMetricCard
-                title="Top 5"
-                metric={data.top5}
-                description={
-                    selectedRunId === "ALL"
-                    ? "Prime 5 selezioni di ogni ranking settimanale"
-                    : "Le cinque migliori selezioni"
-                }
-                />
+            <PerformanceMetricCard
+              title="Top 5"
+              metric={data.top5}
+              description={
+                selectedRunId === "ALL"
+                  ? "Prime 5 selezioni di ogni ranking settimanale"
+                  : "Le cinque migliori selezioni"
+              }
+            />
 
-                <PerformanceMetricCard
-                title="Top 10"
-                metric={data.top10}
-                description={
-                    selectedRunId === "ALL"
-                    ? "Prime 10 selezioni di ogni ranking settimanale"
-                    : "Le prime dieci selezioni"
-                }
-                />
+            <PerformanceMetricCard
+              title="Top 10"
+              metric={data.top10}
+              description={
+                selectedRunId === "ALL"
+                  ? "Prime 10 selezioni di ogni ranking settimanale"
+                  : "Le prime dieci selezioni"
+              }
+            />
 
-                <PerformanceMetricCard
-                title="Overall"
-                metric={data.summary}
-                description={
-                    selectedRunId === "ALL"
-                    ? "Tutte le selezioni di tutte le settimane"
-                    : "Risultato complessivo della run"
-                }
-                />
+            <PerformanceMetricCard
+              title="Overall"
+              metric={data.summary}
+              description={
+                selectedRunId === "ALL"
+                  ? "Tutte le selezioni di tutte le settimane"
+                  : "Risultato complessivo della run"
+              }
+            />
           </section>
 
           <PerformanceTable
