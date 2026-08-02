@@ -25,6 +25,14 @@ const MARKETS = [
     value: "btts",
     label: "BTTS",
   },
+  {
+    value: "home_scored",
+    label: "Home Scored",
+  },
+  {
+    value: "away_scored",
+    label: "Away Scored",
+  },
 ];
 
 export default function HealthFilterForm({
@@ -52,6 +60,10 @@ export default function HealthFilterForm({
 
   function submit(event) {
     event.preventDefault();
+
+    if (!market) {
+      return;
+    }
 
     const parsedThreshold = Number(threshold);
 
@@ -87,7 +99,12 @@ export default function HealthFilterForm({
             setMarket(event.target.value)
           }
           disabled={loading}
+          required
         >
+          <option value="">
+            -- Seleziona un mercato --
+          </option>
+
           {MARKETS.map((item) => (
             <option
               key={item.value}

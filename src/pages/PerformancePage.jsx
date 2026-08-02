@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
   downloadPerformanceReport,
@@ -29,97 +29,79 @@ export default function PerformancePage() {
 
   const [data, setData] = useState(null);
 
-  const [loadingRuns, setLoadingRuns] =
-    useState(true);
-
   const [loadingData, setLoadingData] =
     useState(false);
 
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    async function loadRuns() {
-      try {
-        setError("");
+  async function loadPerformance() {
+    setLoadingData(true);
+    setError("");
+    setData(null);
 
-        const result =
-          await getPerformanceRuns();
+    try {
+      let availableRuns = runs;
 
-        setRuns(result);
-      } catch (requestError) {
-        const message =
-          requestError.response?.data?.message ??
-          requestError.message ??
-          "Errore nel caricamento delle ranking run.";
-
-        setError(message);
-      } finally {
-        setLoadingRuns(false);
+      if (availableRuns.length === 0) {
+        availableRuns = await getPerformanceRuns();
+        setRuns(availableRuns);
       }
+
+      const [
+        summary,
+        top3,
+        top5,
+        top10,
+        markets,
+        leagues,
+        buckets,
+      ] = await Promise.all([
+        getPerformanceSummary(selectedRunId),
+        getTopNPerformance(selectedRunId, 3),
+        getTopNPerformance(selectedRunId, 5),
+        getTopNPerformance(selectedRunId, 10),
+        getMarketPerformance(selectedRunId),
+        getLeaguePerformance(selectedRunId),
+        getScoreBucketPerformance(selectedRunId),
+      ]);
+
+      setData({
+        summary,
+        top3,
+        top5,
+        top10,
+        markets,
+        leagues,
+        buckets,
+      });
+    } catch (requestError) {
+      setData(null);
+
+      const message =
+        requestError.response?.data?.message ??
+        requestError.response?.data?.error ??
+        requestError.message ??
+        "Errore nel caricamento delle performance.";
+
+      setError(message);
+    } finally {
+      setLoadingData(false);
     }
+  }
 
-    loadRuns();
-  }, []);
-
-
-  useEffect(() => {
-
-    async function loadPerformance() {
-      setLoadingData(true);
-      setError("");
-
-      try {
-        const [
-          summary,
-          top3,
-          top5,
-          top10,
-          markets,
-          leagues,
-          buckets,
-        ] = await Promise.all([
-          getPerformanceSummary(selectedRunId),
-          getTopNPerformance(selectedRunId, 3),
-          getTopNPerformance(selectedRunId, 5),
-          getTopNPerformance(selectedRunId, 10),
-          getMarketPerformance(selectedRunId),
-          getLeaguePerformance(selectedRunId),
-          getScoreBucketPerformance(selectedRunId),
-        ]);
-
-        setData({
-          summary,
-          top3,
-          top5,
-          top10,
-          markets,
-          leagues,
-          buckets,
-        });
-      } catch (requestError) {
-        setData(null);
-
-        const message =
-          requestError.response?.data?.message ??
-          requestError.message ??
-          "Errore nel caricamento delle performance.";
-
-        setError(message);
-      } finally {
-        setLoadingData(false);
-      }
-    }
-
-    loadPerformance();
-  }, [selectedRunId]);
 
   return (
     <>
       <RunSelector
         runs={runs}
         selectedRunId={selectedRunId}
-        onChange={setSelectedRunId}
-        loading={loadingRuns || loadingData}
+        onChange={(value) => {
+          setSelectedRunId(value);
+          setData(null);
+          setError("");
+        }}
+        onSubmit={loadPerformance}
+        loading={loadingData}
       />
 
       <div className="performance-actions">
@@ -145,7 +127,7 @@ export default function PerformancePage() {
         </div>
       )}
 
-      {(loadingRuns || loadingData) && (
+      {loadingData && (
         <div className="loading-banner">
           Caricamento performance...
         </div>

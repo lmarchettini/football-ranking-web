@@ -26,3 +26,24 @@ export async function getRankingBacktest(runId) {
 
   return response.data;
 }
+
+export async function generateHistoricalRankingBatch({
+  from,
+  to,
+  limit,
+  mode,
+  replaceExisting,
+}) {
+  const response = await api.post(
+    "/api/v1/rankings/weekly/batch",
+    {
+      from,
+      to,
+      limit,
+      mode,
+      replaceExisting,
+    },
+  );
+
+  return response.data;
+}

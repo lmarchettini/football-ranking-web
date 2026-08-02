@@ -12,6 +12,7 @@ export default function RunSelector({
   runs,
   selectedRunId,
   onChange,
+  onSubmit,
   loading,
 }) {
   return (
@@ -57,6 +58,19 @@ export default function RunSelector({
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="field run-selector__action">
+          <button
+            type="button"
+            className="primary-button"
+            onClick={onSubmit}
+            disabled={loading}
+          >
+            {loading
+              ? "Caricamento..."
+              : "Visualizza statistiche"}
+          </button>
         </div>
       </div>
     </section>
