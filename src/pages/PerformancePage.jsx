@@ -65,18 +65,27 @@ export default function PerformancePage() {
         getScoreBucketPerformance(selectedRunId),
       ]);
 
+      console.log("MARKETS:", markets);
+      console.log("LEAGUES:", leagues);
+
+      const sortedMarkets = [...markets].sort(
+        (a, b) => b.accuracy - a.accuracy,
+      );
+
+      const sortedLeagues = [...leagues].sort(
+        (a, b) => b.accuracy - a.accuracy,
+      );
+
       setData({
         summary,
         top3,
         top5,
         top10,
-        markets,
-        leagues,
+        markets: sortedMarkets,
+        leagues: sortedLeagues,
         buckets,
       });
-    } catch (requestError) {
-      setData(null);
-
+      
       const message =
         requestError.response?.data?.message ??
         requestError.response?.data?.error ??
