@@ -1,17 +1,49 @@
 import { useState } from "react";
 
+function formatDateForInput(date) {
+  const year = date.getFullYear();
+
+  const month = String(
+    date.getMonth() + 1,
+  ).padStart(2, "0");
+
+  const day = String(
+    date.getDate(),
+  ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getTodayDate() {
+  return formatDateForInput(
+    new Date(),
+  );
+}
+
+function getTomorrowDate() {
+  const tomorrow = new Date();
+
+  tomorrow.setDate(
+    tomorrow.getDate() + 1,
+  );
+
+  return formatDateForInput(
+    tomorrow,
+  );
+}
+
 export default function RankingForm({
   loading,
   progress,
   onSubmit,
 }) {
-  const [form, setForm] = useState({
-    from: "2025-09-01",
-    to: "2026-05-31",
-    limit: 15,
-    mode: "HISTORICAL",
+  const [form, setForm] = useState(() => ({
+    from: getTodayDate(),
+    to: getTomorrowDate(),
+    limit: 10,
+    mode: "LIVE",
     generationType: "SINGLE_WEEK",
-  });
+  }));
 
   function updateField(event) {
     const { name, value } = event.target;
@@ -32,7 +64,8 @@ export default function RankingForm({
   }
 
   const isBatch =
-    form.generationType === "FULL_PERIOD_WEEKLY";
+    form.generationType ===
+    "FULL_PERIOD_WEEKLY";
 
   return (
     <form
@@ -64,6 +97,7 @@ export default function RankingForm({
           id="to"
           name="to"
           type="date"
+          min={form.from}
           value={form.to}
           onChange={updateField}
           disabled={loading}
@@ -106,7 +140,7 @@ export default function RankingForm({
             Storico
           </option>
 
-          <option value="UPCOMING">
+          <option value="LIVE">
             Prossime partite
           </option>
         </select>
@@ -146,7 +180,9 @@ export default function RankingForm({
             : "Elaborazione..."
           : isBatch
             ? "Genera tutte le settimane"
-            : "Esegui backtest ranking"}
+            : form.mode === "LIVE"
+              ? "Genera ranking live"
+              : "Esegui backtest ranking"}
       </button>
     </form>
   );

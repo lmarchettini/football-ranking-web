@@ -4,6 +4,13 @@ import ModelHealthPage from "./pages/ModelHealthPage";
 import PerformancePage from "./pages/PerformancePage";
 import RankingPage from "./pages/RankingPage";
 
+import DataIngestionPage from "./pages/DataIngestionPage";
+import DataNormalizationPage from "./pages/DataNormalizationPage";
+import FeatureEngineeringPage from "./pages/FeatureEngineeringPage";
+import GoalProbabilityPage from "./pages/GoalProbabilityPage";
+import ModelTrainingPage from "./pages/ModelTrainingPage";
+import MatchCalendarPage from "./pages/MatchCalendarPage";
+
 import "./App.css";
 
 const PAGE_CONTENT = {
@@ -11,6 +18,36 @@ const PAGE_CONTENT = {
     title: "Ranking Backtest",
     description:
       "Genera ranking storici e confronta le migliori selezioni con i risultati reali.",
+  },
+  calendar: {
+    title: "Match Calendar",
+    description:
+      "Consulta le partite dei campionati BettingBrain e pianifica aggiornamenti, quote e ranking.",
+  },
+  ingestion: {
+    title: "Data Ingestion",
+    description:
+      "Aggiorna fixture, classifiche, statistiche e quote direttamente dai servizi BettingBrain.",
+  },
+  normalization: {
+    title: "Data Normalization",
+    description:
+      "Trasforma le raw response di API-Football nelle tabelle normalizzate di BettingBrain.",
+  },
+  featureEngineering: {
+    title: "Feature Engineering",
+    description:
+      "Genera e aggiorna le feature storiche e future utilizzate dai modelli BettingBrain.",
+  },
+  goalProbability: {
+    title: "Goal Probability",
+    description:
+      "Addestra i modelli Dixon-Coles e genera le probabilità statistiche delle fixture future.",
+  },
+  modelTraining: {
+    title: "Model Training",
+    description:
+      "Configura e addestra i modelli Machine Learning utilizzati da BettingBrain.",
   },
   performance: {
     title: "Performance Dashboard",
@@ -49,8 +86,14 @@ export default function App() {
           >
             {[
               ["ranking", "Ranking"],
+              ["calendar", "Match Calendar"],
               ["performance", "Performance"],
               ["health", "Model Health"],
+              ["ingestion", "Data Ingestion"],
+              ["normalization", "Data Normalization"],
+              ["featureEngineering", "Feature Engineering"],
+              ["goalProbability", "Goal Probability"],
+              ["modelTraining", "Model Training"],
             ].map(([value, label]) => (
               <button
                 key={value}
@@ -74,6 +117,30 @@ export default function App() {
       <main className="content">
         {page === "ranking" && (
           <RankingPage />
+        )}
+
+        {page === "calendar" && (
+          <MatchCalendarPage />
+        )}
+
+        {page === "ingestion" && (
+          <DataIngestionPage />
+        )}
+
+        {page === "normalization" && (
+          <DataNormalizationPage />
+        )}
+
+        {page === "featureEngineering" && (
+          <FeatureEngineeringPage />
+        )}
+
+        {page === "goalProbability" && (
+          <GoalProbabilityPage />
+        )}
+
+        {page === "modelTraining" && (
+          <ModelTrainingPage />
         )}
 
         {page === "performance" && (

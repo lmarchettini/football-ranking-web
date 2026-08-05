@@ -109,6 +109,71 @@ function buildWeeklyPeriods(
   return periods;
 }
 
+function normalizeLiveRanking(ranking) {
+  const selections =
+    (ranking.selections ?? []).map(
+      (selection) => ({
+        ...selection,
+
+        match:
+          selection.match ??
+          [
+            selection.homeTeam,
+            selection.awayTeam,
+          ]
+            .filter(Boolean)
+            .join(" - "),
+
+        finalResult: null,
+        outcome: "PENDING",
+      }),
+    );
+
+  return {
+    ...ranking,
+
+    selections,
+
+    correctSelections: 0,
+    incorrectSelections: 0,
+    evaluatedSelections: 0,
+    pendingSelections: selections.length,
+    overallAccuracy: null,
+
+    top3: {
+      correct: 0,
+      evaluated: 0,
+      pending: Math.min(
+        selections.length,
+        3,
+      ),
+      accuracy: null,
+    },
+
+    top5: {
+      correct: 0,
+      evaluated: 0,
+      pending: Math.min(
+        selections.length,
+        5,
+      ),
+      accuracy: null,
+    },
+
+    top10: {
+      correct: 0,
+      evaluated: 0,
+      pending: Math.min(
+        selections.length,
+        10,
+      ),
+      accuracy: null,
+    },
+
+    marketAccuracy: [],
+  };
+}
+
 export default function RankingPage() {
   const [report, setReport] =
     useState(null);
@@ -153,13 +218,23 @@ export default function RankingPage() {
       generatedRunId,
     );
 
-    const backtest =
-      await getRankingBacktest(
-        generatedRunId,
+    if (form.mode === "HISTORICAL") {
+      const backtest =
+        await getRankingBacktest(
+          generatedRunId,
+        );
+
+      setReport(
+        backtest,
       );
 
+      return;
+    }
+
     setReport(
-      backtest,
+      normalizeLiveRanking(
+        ranking,
+      ),
     );
   }
 
