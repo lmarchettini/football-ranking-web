@@ -1,9 +1,14 @@
 import axios from "axios";
+import {
+  apiUrl,
+} from "../config/runtimeConfig";
 
 const api = axios.create({
-  baseURL:
-    import.meta.env.VITE_RANKING_API_URL ||
+  baseURL: apiUrl(
+    "RANKING_API_URL",
+    "VITE_RANKING_API_URL",
     "http://localhost:8087",
+  ),
   timeout: 180000,
   headers: {
     "Content-Type": "application/json",

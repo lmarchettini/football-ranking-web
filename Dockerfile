@@ -1,24 +1,14 @@
 FROM node:22-alpine AS build
-
 WORKDIR /app
-
 COPY package*.json ./
-
 RUN npm ci
-
 COPY . .
-
-ARG VITE_RANKING_API_URL=http://localhost:8087
-ENV VITE_RANKING_API_URL=${VITE_RANKING_API_URL}
-
 RUN npm run build
 
-FROM nginx:alpine
-
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
+FROM nginx:1.27-alpine
+RUN apk add --no-cache gettext
 COPY --from=build /app/dist /usr/share/nginx/html
-
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/40-runtime-config.sh /docker-entrypoint.d/40-runtime-config.sh
+RUN chmod +x /docker-entrypoint.d/40-runtime-config.sh
 EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]

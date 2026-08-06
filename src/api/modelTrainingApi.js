@@ -1,14 +1,14 @@
 import axios from "axios";
+import {
+    apiUrl,
+} from "../config/runtimeConfig";
 
 const api = axios.create({
-    baseURL:
-        import.meta.env
-            .VITE_MODEL_MANAGEMENT_API_URL ||
+    baseURL: apiUrl(
+        "MODEL_MANAGEMENT_API_URL",
+        "VITE_MODEL_MANAGEMENT_API_URL",
         "http://localhost:8084",
-
-    /*
-     * Il training può durare diversi minuti.
-     */
+    ),
     timeout: 1800000,
 
     headers: {

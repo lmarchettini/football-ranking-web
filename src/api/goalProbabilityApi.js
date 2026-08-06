@@ -1,10 +1,14 @@
 import axios from "axios";
+import {
+  apiUrl,
+} from "../config/runtimeConfig";
 
 const api = axios.create({
-  baseURL:
-    import.meta.env
-      .VITE_GOAL_PROBABILITY_API_URL ||
+  baseURL: apiUrl(
+    "GOAL_PROBABILITY_API_URL",
+    "VITE_GOAL_PROBABILITY_API_URL",
     "http://localhost:8089",
+  ),
 
   /*
    * Il training Dixon-Coles può richiedere

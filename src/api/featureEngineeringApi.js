@@ -1,10 +1,14 @@
 import axios from "axios";
+import {
+    apiUrl,
+} from "../config/runtimeConfig";
 
 const api = axios.create({
-    baseURL:
-        import.meta.env
-            .VITE_FEATURE_ENGINEERING_API_URL ||
+    baseURL: apiUrl(
+        "FEATURE_ENGINEERING_API_URL",
+        "VITE_FEATURE_ENGINEERING_API_URL",
         "http://localhost:8083",
+    ),
 
     /*
      * La generazione delle feature può durare

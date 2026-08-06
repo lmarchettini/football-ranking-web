@@ -1,11 +1,14 @@
 import axios from "axios";
+import {
+    apiUrl,
+} from "../config/runtimeConfig";
 
 const api = axios.create({
-    baseURL:
-        import.meta.env.VITE_NORMALIZER_API_URL ||
+    baseURL: apiUrl(
+        "NORMALIZER_API_URL",
+        "VITE_NORMALIZER_API_URL",
         "http://localhost:8082",
-
-    timeout: 30000,
+    ),
 });
 
 export async function getFixtureCalendar({

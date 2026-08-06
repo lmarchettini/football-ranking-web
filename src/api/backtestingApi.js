@@ -1,9 +1,14 @@
 import axios from "axios";
+import {
+  apiUrl,
+} from "../config/runtimeConfig";
 
 const api = axios.create({
-  baseURL:
-    import.meta.env.VITE_BACKTESTING_API_URL ||
-    "http://localhost:8089",
+  baseURL: apiUrl(
+    "BACKTESTING_API_URL",
+    "VITE_BACKTESTING_API_URL",
+    "http://localhost:8086",
+  ),
   timeout: 60000,
   headers: {
     "Content-Type": "application/json",
