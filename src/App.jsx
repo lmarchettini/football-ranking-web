@@ -10,10 +10,17 @@ import FeatureEngineeringPage from "./pages/FeatureEngineeringPage";
 import GoalProbabilityPage from "./pages/GoalProbabilityPage";
 import ModelTrainingPage from "./pages/ModelTrainingPage";
 import MatchCalendarPage from "./pages/MatchCalendarPage";
+import OfficialBetsPage from "./pages/OfficialBetsPage";
+import HomePage from "./pages/HomePage";
 
 import "./App.css";
 
 const PAGE_CONTENT = {
+  home: {
+    title: "BettingBrain",
+    description:
+      "Football Intelligence & Betting Analytics.",
+  },
   ranking: {
     title: "Ranking Backtest",
     description:
@@ -54,6 +61,12 @@ const PAGE_CONTENT = {
     description:
       "Analizza accuracy, mercati, leghe e calibrazione delle ranking run già elaborate.",
   },
+
+  officialBets: {
+    title: "Le mie giocate",
+    description:
+      "Monitora singole e multiple ufficiali, risultati, profitto, perdita e ROI.",
+  },
   health: {
     title: "Model Health",
     description:
@@ -62,7 +75,8 @@ const PAGE_CONTENT = {
 };
 
 export default function App() {
-  const [page, setPage] = useState("ranking");
+  const [page, setPage] =
+    useState("home");
 
   const content = PAGE_CONTENT[page];
 
@@ -85,8 +99,9 @@ export default function App() {
             aria-label="Navigazione principale"
           >
             {[
-              ["ranking", "Ranking"],
+              ["home", "Home"],
               ["calendar", "Match Calendar"],
+              ["ranking", "Ranking"],
               ["performance", "Performance"],
               ["health", "Model Health"],
               ["ingestion", "Data Ingestion"],
@@ -94,6 +109,7 @@ export default function App() {
               ["featureEngineering", "Feature Engineering"],
               ["goalProbability", "Goal Probability"],
               ["modelTraining", "Model Training"],
+              ["officialBets", "Le mie giocate"],
             ].map(([value, label]) => (
               <button
                 key={value}
@@ -115,6 +131,11 @@ export default function App() {
       </header>
 
       <main className="content">
+        {page === "home" && (
+          <HomePage
+            onNavigate={setPage}
+          />
+        )}
         {page === "ranking" && (
           <RankingPage />
         )}
@@ -145,6 +166,10 @@ export default function App() {
 
         {page === "performance" && (
           <PerformancePage />
+        )}
+
+        {page === "officialBets" && (
+          <OfficialBetsPage />
         )}
 
         {page === "health" && (

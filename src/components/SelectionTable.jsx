@@ -1,32 +1,47 @@
-function percentage(value) {
-  return `${(Number(value ?? 0) * 100).toFixed(2)}%`;
-}
+function formatPercentage(
+  value,
+) {
+  const number =
+    Number(value);
 
-function decimal(value, digits = 2) {
-  if (value === null || value === undefined) {
+  if (!Number.isFinite(number)) {
     return "—";
   }
 
-  return Number(value).toFixed(digits);
+  return `${(
+    number * 100
+  ).toFixed(2)}%`;
 }
 
-function signedPercentage(value) {
-  if (value === null || value === undefined) {
+function formatDecimal(
+  value,
+  digits = 2,
+) {
+  const number =
+    Number(value);
+
+  if (!Number.isFinite(number)) {
     return "—";
   }
 
-  const numericValue = Number(value);
-  const sign = numericValue > 0 ? "+" : "";
-
-  return `${sign}${(numericValue * 100).toFixed(2)}%`;
+  return number.toLocaleString(
+    "it-IT",
+    {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    },
+  );
 }
 
-function formatOddsDate(value) {
+function formatDateTime(
+  value,
+) {
   if (!value) {
     return "—";
   }
 
-  const date = new Date(value);
+  const date =
+    new Date(value);
 
   if (
     Number.isNaN(
@@ -36,250 +51,335 @@ function formatOddsDate(value) {
     return "—";
   }
 
-  return new Intl.DateTimeFormat(
+  return date.toLocaleString(
     "it-IT",
     {
       day: "2-digit",
       month: "2-digit",
+      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     },
-  ).format(date);
+  );
 }
 
-function getOddsFreshness(value) {
-  if (!value) {
-    return {
-      label: "Data non disponibile",
-      className:
-        "odds-freshness odds-freshness--unknown",
-    };
-  }
-
-  const fetchedAt =
-    new Date(value);
-
-  if (
-    Number.isNaN(
-      fetchedAt.getTime(),
-    )
-  ) {
-    return {
-      label: "Data non valida",
-      className:
-        "odds-freshness odds-freshness--unknown",
-    };
-  }
-
-  const ageMilliseconds =
-    Date.now() -
-    fetchedAt.getTime();
-
-  /*
-   * Se c'è una piccola differenza di clock
-   * tra client e server, non mostriamo
-   * un'età negativa.
-   */
-  const ageHours =
-    Math.max(
-      0,
-      ageMilliseconds /
-        (1000 * 60 * 60),
+function hasValidOfficialBetData(
+  selection,
+) {
+  const rankedPredictionId =
+    Number(
+      selection
+        ?.rankedPredictionId,
     );
 
-  if (ageHours < 6) {
-    return {
-      label: "Recente",
-      className:
-        "odds-freshness odds-freshness--fresh",
-    };
-  }
+  const decimalOdds =
+    Number(
+      selection
+        ?.decimalOdds,
+    );
 
-  if (ageHours < 24) {
-    return {
-      label: "Oggi",
-      className:
-        "odds-freshness odds-freshness--warning",
-    };
-  }
-
-  return {
-    label: "Da aggiornare",
-    className:
-      "odds-freshness odds-freshness--stale",
-  };
+  return (
+    Number.isFinite(
+      rankedPredictionId,
+    ) &&
+    rankedPredictionId > 0 &&
+    Number.isFinite(
+      decimalOdds,
+    ) &&
+    decimalOdds > 1
+  );
 }
 
-function outcomeLabel(outcome) {
-  switch (outcome) {
-    case "CORRECT":
-      return {
-        icon: "✓",
-        text: "Corretto",
-        className: "outcome outcome--correct",
-      };
+export default function SelectionTable({
+  selections = [],
+  selectedPredictionIds = [],
+  onToggleSelection,
+  onToggleAll,
+  selectionEnabled = true,
+}) {
+  const selectedIds =
+    new Set(
+      selectedPredictionIds,
+    );
 
-    case "INCORRECT":
-      return {
-        icon: "✕",
-        text: "Errato",
-        className: "outcome outcome--incorrect",
-      };
+  const selectableSelections =
+    selections.filter(
+      hasValidOfficialBetData,
+    );
 
-    default:
-      return {
-        icon: "…",
-        text: "In attesa",
-        className: "outcome outcome--pending",
-      };
+  const allSelectableSelected =
+    selectableSelections.length > 0 &&
+    selectableSelections.every(
+      (selection) =>
+        selectedIds.has(
+          selection
+            .rankedPredictionId,
+        ),
+    );
+
+  const someSelectableSelected =
+    selectableSelections.some(
+      (selection) =>
+        selectedIds.has(
+          selection
+            .rankedPredictionId,
+        ),
+    );
+
+  if (
+    !Array.isArray(selections) ||
+    selections.length === 0
+  ) {
+    return (
+      <div className="empty-state">
+        <h3>
+          Nessun pronostico disponibile
+        </h3>
+
+        <p>
+          Genera un ranking per visualizzare
+          le selezioni.
+        </p>
+      </div>
+    );
   }
-}
 
-export default function SelectionTable({ selections }) {
-  if (!selections?.length) {
-    return null;
+  function handleToggleAll() {
+    if (
+      !selectionEnabled ||
+      selectableSelections.length === 0
+    ) {
+      return;
+    }
+
+    onToggleAll?.(
+      selectableSelections,
+      !allSelectableSelected,
+    );
   }
 
   return (
-    <section className="panel">
-      <div className="panel__header">
-        <div>
-          <h2>Dettaglio selezioni</h2>
-          <p>
-            Pronostici ordinati in base allo score del
-            Ranking Service.
-          </p>
-        </div>
-      </div>
+    <div className="table-wrapper">
+      <table className="selection-table">
+        <thead>
+          <tr>
+            <th className="selection-checkbox-column">
+              <input
+                type="checkbox"
+                aria-label="Seleziona tutti i pronostici"
+                checked={
+                  allSelectableSelected
+                }
+                ref={(
+                  checkbox,
+                ) => {
+                  if (checkbox) {
+                    checkbox.indeterminate =
+                      !allSelectableSelected &&
+                      someSelectableSelected;
+                  }
+                }}
+                onChange={
+                  handleToggleAll
+                }
+                disabled={
+                  !selectionEnabled ||
+                  selectableSelections.length ===
+                  0
+                }
+              />
+            </th>
 
-      <div className="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Partita</th>
-              <th>Lega</th>
-              <th>Mercato</th>
-              <th>Probabilità</th>
-              <th>Quota</th>
-              <th>Edge</th>
-              <th>EV</th>
-              <th>Bookmaker</th>
-              <th>Quota aggiornata</th>
-              <th>Score</th>
-              <th>Risultato</th>
-              <th>Esito</th>
-            </tr>
-          </thead>
+            <th>
+              #
+            </th>
 
-          <tbody>
-            {selections.map((selection) => {
-              const outcome =
-                outcomeLabel(selection.outcome);
+            <th>
+              Partita
+            </th>
 
-              const oddsFreshness =
-                getOddsFreshness(
-                  selection.oddsFetchedAt,
+            <th>
+              Lega
+            </th>
+
+            <th>
+              Pronostico
+            </th>
+
+            <th>
+              Probabilità
+            </th>
+
+            <th>
+              Quota
+            </th>
+
+            <th>
+              Edge
+            </th>
+
+            <th>
+              EV
+            </th>
+
+            <th>
+              Bookmaker
+            </th>
+
+            <th>
+              Score
+            </th>
+
+            <th>
+              Quota aggiornata
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {selections.map(
+            (selection) => {
+              const predictionId =
+                selection
+                  .rankedPredictionId;
+
+              const selectable =
+                selectionEnabled &&
+                hasValidOfficialBetData(
+                  selection,
+                );
+
+              const selected =
+                selectable &&
+                selectedIds.has(
+                  predictionId,
                 );
 
               return (
-                <tr key={`${selection.rank}-${selection.fixtureId}`}>
+                <tr
+                  key={
+                    predictionId ??
+                    `${selection.fixtureId}-${selection.market}-${selection.rank}`
+                  }
+                  className={
+                    selected
+                      ? "selection-row selection-row--selected"
+                      : "selection-row"
+                  }
+                >
+                  <td className="selection-checkbox-column">
+                    <input
+                      type="checkbox"
+                      aria-label={`Seleziona ${selection.homeTeam} - ${selection.awayTeam}`}
+                      checked={
+                        selected
+                      }
+                      disabled={
+                        !selectable
+                      }
+                      onChange={() =>
+                        onToggleSelection?.(
+                          selection,
+                        )
+                      }
+                    />
+                  </td>
+
                   <td>
-                    <span className="rank-badge">
-                      {selection.rank}
-                    </span>
+                    {
+                      selection.rank
+                    }
                   </td>
 
-                  <td className="match-cell">
-                    {selection.match ||
-                      [
-                        selection.homeTeam,
-                        selection.awayTeam,
-                      ]
-                        .filter(Boolean)
-                        .join(" - ") ||
-                      "Partita non disponibile"}
+                  <td>
+                    <div className="match-cell">
+                      <strong>
+                        {
+                          selection.homeTeam
+                        }{" "}
+                        -{" "}
+                        {
+                          selection.awayTeam
+                        }
+                      </strong>
+
+                      <span>
+                        {formatDateTime(
+                          selection.kickoff,
+                        )}
+                      </span>
+                    </div>
                   </td>
 
-                  <td>{selection.leagueName}</td>
+                  <td>
+                    {
+                      selection.leagueName
+                    }
+                  </td>
 
                   <td>
                     <span className="market-badge">
-                      {selection.marketDisplayName}
+                      {
+                        selection
+                          .marketDisplayName
+                      }
                     </span>
                   </td>
 
                   <td>
-                    {percentage(
+                    {formatPercentage(
+                      selection.effectiveProbability ??
                       selection.modelProbability,
                     )}
                   </td>
 
                   <td>
-                    {decimal(
-                      selection.decimalOdds,
+                    {formatDecimal(
+                      selection
+                        .decimalOdds,
                       2,
                     )}
                   </td>
 
                   <td>
-                    {signedPercentage(
+                    {formatPercentage(
                       selection.edge,
                     )}
                   </td>
 
                   <td>
-                    {signedPercentage(
-                      selection.expectedValue,
+                    {formatPercentage(
+                      selection
+                        .expectedValue,
                     )}
                   </td>
 
                   <td>
-                    {selection.bookmaker ?? "—"}
-                  </td>
-
-                  <td>
-                    {selection.oddsFetchedAt ? (
-                      <div className="odds-updated-cell">
-                        <strong>
-                          {formatOddsDate(
-                            selection.oddsFetchedAt,
-                          )}
-                        </strong>
-
-                        <span
-                          className={
-                            oddsFreshness.className
-                          }
-                        >
-                          {oddsFreshness.label}
-                        </span>
-                      </div>
-                    ) : (
+                    {
+                      selection.bookmaker ||
                       "—"
+                    }
+                  </td>
+
+                  <td>
+                    {formatDecimal(
+                      selection.score,
+                      2,
                     )}
                   </td>
 
                   <td>
-                    {Number(selection.score).toFixed(2)}
-                  </td>
-
-                  <td>
-                    {selection.finalResult ?? "—"}
-                  </td>
-
-                  <td>
-                    <span className={outcome.className}>
-                      <span>{outcome.icon}</span>
-                      {outcome.text}
-                    </span>
+                    {formatDateTime(
+                      selection
+                        .oddsFetchedAt,
+                    )}
                   </td>
                 </tr>
               );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </section>
+            },
+          )}
+        </tbody>
+      </table>
+    </div>
   );
 }

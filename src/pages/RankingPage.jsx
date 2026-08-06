@@ -1,14 +1,22 @@
-import { useState } from "react";
+
 
 import {
   generateHistoricalRanking,
   getRankingBacktest,
 } from "../api/rankingApi";
 
+import {
+  useMemo,
+  useState,
+} from "react";
+
+import BetCreationModal from "../components/BetCreationModal";
+
 import MetricCard from "../components/MetricCard";
 import RankingForm from "../components/RankingForm";
 import MarketTable from "../components/MarketTable";
 import SelectionTable from "../components/SelectionTable";
+
 
 function overallMetric(report) {
   return {
@@ -196,6 +204,128 @@ export default function RankingPage() {
       total: 0,
     });
 
+  const [
+    selectedPredictionIds,
+    setSelectedPredictionIds,
+  ] = useState([]);
+
+  const [
+    betModalOpen,
+    setBetModalOpen,
+  ] = useState(false);
+
+  const [
+    betCreatedMessage,
+    setBetCreatedMessage,
+  ] = useState("");
+
+  const selections =
+    report?.selections ?? [];
+
+  const selectedSelections =
+    useMemo(() => {
+      const selectedIds =
+        new Set(
+          selectedPredictionIds,
+        );
+
+      return selections.filter(
+        (selection) =>
+          selectedIds.has(
+            selection.rankedPredictionId,
+          ),
+      );
+    }, [
+      selections,
+      selectedPredictionIds,
+    ]);
+
+  function handleToggleSelection(
+    selection,
+  ) {
+    const predictionId =
+      selection.rankedPredictionId;
+
+    if (!predictionId) {
+      return;
+    }
+
+    setSelectedPredictionIds(
+      (currentIds) => {
+        const alreadySelected =
+          currentIds.includes(
+            predictionId,
+          );
+
+        if (alreadySelected) {
+          return currentIds.filter(
+            (id) =>
+              id !== predictionId,
+          );
+        }
+
+        return [
+          ...currentIds,
+          predictionId,
+        ];
+      },
+    );
+
+    setBetCreatedMessage("");
+  }
+
+  function handleToggleAll(
+    selectableSelections,
+    shouldSelect,
+  ) {
+    const selectableIds =
+      selectableSelections
+        .map(
+          (selection) =>
+            selection.rankedPredictionId,
+        )
+        .filter(Boolean);
+
+    setSelectedPredictionIds(
+      shouldSelect
+        ? selectableIds
+        : [],
+    );
+
+    setBetCreatedMessage("");
+  }
+
+  function handleOpenBetModal() {
+    if (
+      selectedSelections.length === 0
+    ) {
+      return;
+    }
+
+    setBetModalOpen(true);
+    setBetCreatedMessage("");
+  }
+
+  function handleCloseBetModal() {
+    setBetModalOpen(false);
+  }
+
+  function handleBetCreated(
+    createdBet,
+  ) {
+    setBetModalOpen(false);
+    setSelectedPredictionIds([]);
+
+    const betTypeLabel =
+      createdBet.betType === "MULTIPLE"
+        ? "Multipla"
+        : "Singola";
+
+    setBetCreatedMessage(
+      `${betTypeLabel} creata correttamente con ID ${createdBet.id}.`,
+    );
+  }
+
   async function executeSingle(form) {
     const ranking =
       await generateHistoricalRanking({
@@ -363,6 +493,9 @@ export default function RankingPage() {
     setReport(null);
     setRunId("");
     setBatchResult(null);
+    setSelectedPredictionIds([]);
+    setBetCreatedMessage("");
+    setBetModalOpen(false);
 
     try {
       if (
@@ -562,11 +695,82 @@ export default function RankingPage() {
             markets={report.markets}
           />
 
+          {selections.length > 0 && (
+            <div className="official-bet-toolbar">
+              <div>
+                <span className="eyebrow">
+                  Giocate ufficiali
+                </span>
+
+                <strong>
+                  {
+                    selectedSelections.length
+                  }{" "}
+                  selezioni scelte
+                </strong>
+
+                <p>
+                  Seleziona uno o più
+                  pronostici per creare una
+                  singola o una multipla.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="primary-button"
+                onClick={
+                  handleOpenBetModal
+                }
+                disabled={
+                  selectedSelections.length ===
+                  0 ||
+                  loading
+                }
+              >
+                Crea giocata
+                {selectedSelections.length > 0
+                  ? ` (${selectedSelections.length})`
+                  : ""}
+              </button>
+            </div>
+          )}
+
+          {betCreatedMessage && (
+            <div className="form-alert form-alert--success">
+              {betCreatedMessage}
+            </div>
+          )}
+
           <SelectionTable
-            selections={report.selections}
+            selections={selections}
+            selectedPredictionIds={
+              selectedPredictionIds
+            }
+            onToggleSelection={
+              handleToggleSelection
+            }
+            onToggleAll={
+              handleToggleAll
+            }
+            selectionEnabled={
+              !loading
+            }
           />
         </>
       )}
+      <BetCreationModal
+        open={betModalOpen}
+        selections={
+          selectedSelections
+        }
+        onClose={
+          handleCloseBetModal
+        }
+        onCreated={
+          handleBetCreated
+        }
+      />
     </>
   );
 }
